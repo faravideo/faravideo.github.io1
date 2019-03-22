@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+  </head>
+  <body>
+    <label for="yourId">Your ID:</label>
+    <textarea id="yourId"></textarea>
+    <label for="otherId">Other ID:</label>
+    <textarea id="otherId"></textarea>
+    <button id="connect">Connect</button>
+    <script>
+      require('jquery');
+      navigator.getUserMedia({video:true,audio:false},
+        function(stream) {
+          let Peer = require('simple-peer');
+          let peer = new Peer({
+            initiator: location.hash === '#init',
+            trickle: false,
+            stream: stream
+          });
+          peer.on('signal', function(data) {
+            $('#yourId').val(JSON.stringify(data));
+          });
+          $('#connect').on('click',function () {
+            let otherId = JSON.parse($('#otherId').val());
+            peer.signal(otherId);
+          });
+          $('#send').on('click',function () {
+            let yourMessage = $('#yourMessage').val();
+            peer.send(yourMessage);
+          });
+          peer.on('data', function(data) {
+            document.getElementById('messages').textContent += data + '\n'
+          });
+          peer.on('stream', function(stream) {
+            let video = document.createElement('video');
+            document.body.appendChild(video);
+            video.src = window.URL.createObjectURL(stream);
+          });
+        },function(err) {
+          console.error(err.name,err.message);
+        }
+      );
+    </script>
+  </body>
+</html>
